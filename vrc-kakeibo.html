@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRC Kakeibo</title>
+
+<style>
+:root{
+  --bg:#090e14;--bg2:#0c1520;--sf:#0f1d2b;--sf2:#142333;
+  --bd:#1e3448;--bd2:#264259;
+  --tl:#00d4c8;--tl2:#00a89e;
+  --bl:#2196e8;--bl2:#1876c4;
+  --cy:#56e0f5;--cy2:#38b8cc;
+  --tx:#d6eef8;--txm:#7fb8d4;--txd:#3d6a84;
+  --ok:#3dd68c;--wn:#f0c040;--er:#f06060;--pk:#e87ab0;
+  --r:10px;--rs:6px;
+  --f-body:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --f-mono:"Menlo","Consolas","Courier New",monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-body);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 15% 10%,rgba(0,180,200,.09) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 85% 80%,rgba(33,150,232,.08) 0%,transparent 60%);pointer-events:none;z-index:-1}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,200,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,200,.022) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:-1;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%)}
+.app{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:0 16px 100px}
+
+/* Header */
+.hd{padding:28px 0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--bd);margin-bottom:20px}
+.logo{display:flex;flex-direction:column;gap:3px}
+.logo-mark{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--tl),var(--bl));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px rgba(0,212,200,.35);flex-shrink:0}
+.logo-main{font-size:20px;font-weight:900;letter-spacing:.04em;background:linear-gradient(100deg,var(--tl) 0%,var(--cy) 50%,var(--bl) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd);letter-spacing:.12em;padding-left:46px}
+.hd-stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.stat-pill{background:var(--sf2);border:1px solid var(--bd2);border-radius:20px;padding:5px 14px;font-size:12px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txm);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.stat-pill b{color:var(--tl);font-weight:700}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:4px;margin-bottom:20px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;min-width:fit-content;padding:9px 14px;background:transparent;border:none;color:var(--txd);font-family:var(--f-body);font-size:12px;font-weight:700;border-radius:var(--rs);cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:5px;justify-content:center}
+.tab:hover{color:var(--txm);background:var(--sf2)}
+.tab.on{background:linear-gradient(135deg,rgba(0,212,200,.15),rgba(33,150,232,.12));color:var(--tl);box-shadow:inset 0 0 0 1px rgba(0,212,200,.3)}
+.tbadge{background:var(--tl);color:var(--bg);font-size:9px;font-weight:900;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;line-height:1.6}
+
+/* Panels */
+.panel{display:none}
+.panel.on{display:block;animation:pIn .2s ease}
+@keyframes pIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Card */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--tl),var(--bl));border-radius:3px 0 0 3px}
+.ctitle{font-size:11px;font-weight:700;color:var(--tl);letter-spacing:.12em;text-transform:uppercase;margin-bottom:16px;font-family:var(--f-mono)"Consolas","Courier New",monospace}
+
+/* ═══ クイック入力フォーム ═══ */
+.quick-form{display:flex;flex-direction:column;gap:0}
+
+/* URLバー */
+.url-bar{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 14px;margin-bottom:12px;transition:border-color .2s}
+.url-bar:focus-within{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+.url-bar-icon{font-size:14px;flex-shrink:0;color:var(--txd)}
+.url-bar input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:var(--f-body);font-size:13px}
+.url-bar input::placeholder{color:var(--txd)}
+.url-parsed{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--tl2);padding:2px 6px;background:rgba(0,212,200,.08);border-radius:4px;white-space:nowrap;flex-shrink:0}
+
+/* メイン入力行（名前＋金額） */
+.main-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-bottom:12px}
+@media(max-width:480px){.main-row{grid-template-columns:1fr}}
+.field-label{font-size:10px;font-weight:700;color:var(--txm);margin-bottom:4px;letter-spacing:.06em}
+.main-row input[type=text]{width:100%;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:10px 13px;color:var(--tx);font-family:var(--f-body);font-size:14px;font-weight:700;outline:none;transition:border-color .2s}
+.main-row input[type=text]:focus{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+.price-wrap{display:flex;align-items:center;gap:0;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);overflow:hidden;transition:border-color .2s;min-width:120px}
+.price-wrap:focus-within{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+.price-yen{padding:10px 8px 10px 13px;font-size:14px;color:var(--tl);font-family:var(--f-mono)"Consolas","Courier New",monospace;font-weight:700;flex-shrink:0}
+.price-wrap input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:var(--f-mono)"Consolas","Courier New",monospace;font-size:14px;font-weight:700;padding:10px 13px 10px 0;min-width:60px}
+
+/* 折りたたみ詳細 */
+.detail-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;color:var(--txd);font-size:11px;font-weight:700;margin-bottom:10px;width:fit-content}
+.detail-toggle:hover{color:var(--txm)}
+.toggle-arrow{transition:transform .2s;font-size:10px}
+.toggle-arrow.open{transform:rotate(90deg)}
+.detail-panel{display:none}
+.detail-panel.open{display:flex;flex-direction:column;gap:10px}
+
+/* 通常フォーム要素 */
+.fg{margin-bottom:0}
+label{display:block;font-size:10px;font-weight:700;color:var(--txm);margin-bottom:4px;letter-spacing:.06em}
+input[type=text].sm,input[type=date].sm,select.sm{width:100%;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 12px;color:var(--tx);font-family:var(--f-body);font-size:13px;outline:none;transition:border-color .2s;-webkit-appearance:none}
+input[type=text].sm:focus,input[type=date].sm:focus,select.sm:focus{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+select.sm option{background:var(--sf2)}
+textarea.sm{width:100%;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 12px;color:var(--tx);font-family:var(--f-body);font-size:13px;outline:none;transition:border-color .2s;resize:vertical;min-height:56px;line-height:1.6}
+textarea.sm:focus{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+.frow2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.frow2{grid-template-columns:1fr}}
+
+/* チップ */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;background:var(--bg2);border:1px solid var(--bd);border-radius:20px;font-size:11px;font-weight:700;color:var(--txd);cursor:pointer;user-select:none;transition:all .15s}
+.chip:hover{border-color:var(--tl2);color:var(--tl)}
+.chip.on{background:rgba(0,212,200,.12);border-color:var(--tl2);color:var(--tl)}
+
+/* タグ入力 */
+.tag-input-wrap{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);padding:6px 10px;min-height:38px;cursor:text;transition:border-color .2s}
+.tag-input-wrap:focus-within{border-color:var(--tl2);box-shadow:0 0 0 3px rgba(0,212,200,.1)}
+.tag-pill{display:inline-flex;align-items:center;gap:4px;background:rgba(0,212,200,.12);border:1px solid rgba(0,212,200,.25);border-radius:12px;padding:2px 8px;font-size:11px;color:var(--tl);font-weight:700;white-space:nowrap}
+.tag-pill button{background:none;border:none;color:var(--tl2);cursor:pointer;font-size:12px;padding:0;line-height:1;display:flex;align-items:center}
+.tag-pill button:hover{color:var(--er)}
+.tag-input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);font-family:var(--f-body);font-size:12px;min-width:80px;padding:2px 4px}
+.tag-hint{font-size:10px;color:var(--txd);margin-top:3px}
+
+/* カテゴリグリッド */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
+.cat-btn{padding:7px 10px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--rs);font-size:11px;font-weight:700;color:var(--txd);cursor:pointer;transition:all .15s;text-align:center;font-family:var(--f-body);display:flex;flex-direction:column;align-items:center;gap:3px}
+.cat-btn:hover{border-color:var(--tl2);color:var(--tl)}
+.cat-btn.on{background:rgba(0,212,200,.12);border-color:var(--tl2);color:var(--tl)}
+.cat-btn .cat-ico{font-size:16px}
+.cat-btn .cat-lbl{font-size:10px}
+
+/* ボタン */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:var(--rs);font-family:var(--f-body);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn-tl{background:linear-gradient(135deg,var(--tl),var(--bl2));color:#04111b;box-shadow:0 2px 12px rgba(0,212,200,.25)}
+.btn-tl:hover{opacity:.88;transform:translateY(-1px)}
+.btn-pk{background:linear-gradient(135deg,var(--pk),#c05080);color:#fff}
+.btn-pk:hover{opacity:.88;transform:translateY(-1px)}
+.btn-bl{background:linear-gradient(135deg,var(--bl),#1a60a8);color:#fff}
+.btn-bl:hover{opacity:.88;transform:translateY(-1px)}
+.btn-gn{background:linear-gradient(135deg,var(--ok),#2aaa6a);color:#04111b}
+.btn-gn:hover{opacity:.88;transform:translateY(-1px)}
+.btn-gh{background:var(--sf2);border:1px solid var(--bd2);color:var(--txm)}
+.btn-gh:hover{border-color:var(--tl2);color:var(--tl)}
+.btn-ic{width:30px;height:30px;padding:0;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--rs);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .15s;color:var(--txd)}
+.btn-ic:hover{border-color:var(--er);color:var(--er);background:rgba(240,96,96,.07)}
+.btn-promo{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;background:transparent;border:1px solid var(--tl2);border-radius:var(--rs);color:var(--tl);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:var(--f-body)}
+.btn-promo:hover{background:rgba(0,212,200,.1)}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+/* Item list */
+.ilist{display:flex;flex-direction:column;gap:8px}
+.icard{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 14px;display:flex;align-items:flex-start;gap:11px;transition:border-color .2s,background .2s;animation:iIn .25s ease}
+@keyframes iIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.icard:hover{border-color:var(--bd2);background:var(--sf2)}
+.idot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.d-tl{background:var(--tl);box-shadow:0 0 6px var(--tl)}
+.d-pk{background:var(--pk);box-shadow:0 0 6px var(--pk)}
+.d-cy{background:var(--cy);box-shadow:0 0 6px var(--cy)}
+.d-gn{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.ibody{flex:1;min-width:0}
+.iname{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imeta{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.badge{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;padding:2px 6px;border-radius:4px}
+.b-tl{background:rgba(0,212,200,.12);color:var(--tl2);border:1px solid rgba(0,212,200,.2)}
+.b-bl{background:rgba(33,150,232,.12);color:#5aaae8;border:1px solid rgba(33,150,232,.2)}
+.b-cy{background:rgba(86,224,245,.1);color:var(--cy2);border:1px solid rgba(86,224,245,.2)}
+.b-pk{background:rgba(232,122,176,.1);color:var(--pk);border:1px solid rgba(232,122,176,.2)}
+.b-gn{background:rgba(61,214,140,.1);color:var(--ok);border:1px solid rgba(61,214,140,.2)}
+.b-yn{background:rgba(240,192,64,.1);color:var(--wn);border:1px solid rgba(240,192,64,.2)}
+.b-gy{background:rgba(61,106,132,.15);color:var(--txm);border:1px solid rgba(61,106,132,.25)}
+/* タグバッジ */
+.b-tag{background:rgba(0,212,200,.07);color:var(--tl2);border:1px solid rgba(0,212,200,.15);font-size:9px;padding:1px 5px}
+.idate{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd)}
+.iurl{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px}
+.iurl a{color:var(--txd);text-decoration:none}
+.iurl a:hover{color:var(--tl)}
+.imemo{font-size:11px;color:var(--txm);margin-top:4px;line-height:1.5}
+.iright{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.iprice{font-size:15px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--tl);white-space:nowrap}
+.p-free{color:var(--cy)}
+.p-inc{color:var(--ok)}
+
+/* DL check */
+.dlbox{width:22px;height:22px;border:1.5px solid var(--bd2);border-radius:5px;background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;flex-shrink:0;margin-top:3px}
+.dlbox.done{background:var(--ok);border-color:var(--ok);color:#04111b}
+
+/* Filter chips */
+.frow{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.fc{padding:5px 12px;border:1px solid var(--bd);border-radius:20px;font-size:11px;font-weight:700;background:transparent;color:var(--txd);cursor:pointer;transition:all .15s;font-family:var(--f-body)}
+.fc:hover{border-color:var(--tl2);color:var(--tl2)}
+.fc.on{background:rgba(0,212,200,.1);border-color:var(--tl2);color:var(--tl)}
+
+/* Summary */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:480px){.sgrid{grid-template-columns:repeat(2,1fr)}}
+.scell{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;text-align:center;position:relative;overflow:hidden}
+.scell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.sc-ex::after{background:linear-gradient(90deg,var(--tl),var(--bl))}
+.sc-in::after{background:linear-gradient(90deg,var(--ok),#1aaa5a)}
+.sc-ba::after{background:linear-gradient(90deg,var(--cy),var(--tl))}
+.sc-nt::after{background:linear-gradient(90deg,var(--bl2),#1050a0)}
+.slabel{font-size:10px;color:var(--txd);margin-bottom:6px}
+.sval{font-size:18px;font-family:var(--f-mono)"Consolas","Courier New",monospace}
+.sv-tl{color:var(--tl)}.sv-gn{color:var(--ok)}.sv-cy{color:var(--cy)}.sv-bl{color:#5aaae8}.sv-rd{color:var(--er)}
+
+/* Bar chart */
+.barchart{display:flex;flex-direction:column;gap:9px;margin-top:8px}
+.brow2{display:flex;align-items:center;gap:10px}
+.blabel{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd);width:44px;text-align:right;flex-shrink:0}
+.btrack{flex:1;height:22px;background:var(--sf2);border-radius:4px;overflow:hidden;border:1px solid var(--bd)}
+.bfill{height:100%;background:linear-gradient(90deg,var(--tl),var(--bl));border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;padding-left:8px;min-width:3px}
+.bval{font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:#04111b;white-space:nowrap}
+
+/* Export */
+.expbar{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.exptxt{font-size:12px;color:var(--txm);line-height:1.6}
+.exptxt small{color:var(--txd);font-size:10px}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(4,12,22,.82);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--r) var(--r) var(--rs) var(--rs);padding:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;transform:translateY(32px);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:0 -8px 48px rgba(0,0,0,.6)}
+.overlay.open .modal{transform:translateY(0)}
+.mtitle{font-size:15px;font-weight:900;margin-bottom:18px;color:var(--tl);font-family:var(--f-mono)"Consolas","Courier New",monospace}
+
+/* Toast */
+.twrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 18px;font-size:12px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:7px;box-shadow:0 6px 28px rgba(0,0,0,.5);animation:tIn .25s ease,tOut .25s ease 2.6s forwards}
+@keyframes tIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes tOut{from{opacity:1}to{opacity:0;transform:translateY(-6px)}}
+
+/* Empty */
+.empty{text-align:center;padding:44px 20px;color:var(--txd)}
+.empty-ic{font-size:36px;margin-bottom:10px;opacity:.6}
+.empty-tx{font-size:13px;line-height:1.8}
+
+/* Misc */
+.slbl{font-size:10px;font-weight:700;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd);letter-spacing:.12em;margin-bottom:10px}
+.mt4{margin-top:4px}.mt8{margin-top:8px}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--tl2)}
+@media(max-width:600px){.hd{flex-direction:column;align-items:flex-start}.hd-stats{justify-content:flex-start}.logo-sub{padding-left:0;margin-top:4px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Header -->
+<header class="hd">
+  <div class="logo">
+    <div class="logo-mark">
+      <div class="logo-icon">🎮</div>
+      <div class="logo-main">VRC Kakeibo</div>
+    </div>
+    <div class="logo-sub">VRCHAT / BOOTH 購入管理</div>
+  </div>
+  <div class="hd-stats">
+    <div class="stat-pill">今月 <b id="hd-m">¥0</b></div>
+    <div class="stat-pill">累計 <b id="hd-t">¥0</b></div>
+  </div>
+</header>
+
+<!-- Tabs -->
+<nav class="tabs">
+  <button class="tab on" data-tab="purchased" onclick="sw('purchased')">💎 購入済み <span class="tbadge" id="tc-p">0</span></button>
+  <button class="tab" data-tab="wishlist" onclick="sw('wishlist')">💗 ほしい物 <span class="tbadge" id="tc-w" style="background:var(--pk)">0</span></button>
+  <button class="tab" data-tab="free" onclick="sw('free')">🔹 無料アイテム <span class="tbadge" id="tc-f" style="background:var(--cy);color:#04111b">0</span></button>
+  <button class="tab" data-tab="summary" onclick="sw('summary')">📊 収支</button>
+</nav>
+
+<!-- ══ 購入済み ══ -->
+<div id="panel-purchased" class="panel on">
+  <div class="card">
+    <div class="ctitle">Quick Entry — 購入記録</div>
+
+    <!-- URLバー -->
+    <div class="url-bar">
+      <span class="url-bar-icon">🔗</span>
+      <input type="url" id="p-url" placeholder="BOOTHのURLをここに貼り付け（任意）" oninput="onUrlInput('p-url','p-url-id')">
+      <span class="url-parsed" id="p-url-id" style="display:none"></span>
+    </div>
+
+    <!-- 名前 ＋ 金額（必須2項目） -->
+    <div class="main-row">
+      <div>
+        <div class="field-label">商品名 ＊</div>
+        <input type="text" id="p-name" placeholder="例：オリジナルアバター Mika">
+      </div>
+      <div>
+        <div class="field-label">金額 ＊</div>
+        <div class="price-wrap">
+          <span class="price-yen">¥</span>
+          <input type="number" id="p-price" placeholder="3000" min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- 詳細（折りたたみ） -->
+    <div class="detail-toggle" onclick="toggleDetail('p-detail','p-arrow')">
+      <span class="toggle-arrow" id="p-arrow">▶</span>
+      詳細を入力する（任意）
+    </div>
+    <div class="detail-panel" id="p-detail">
+
+      <div class="frow2">
+        <div class="fg"><label>購入日</label><input type="date" id="p-date" class="sm"></div>
+        <div class="fg"><label>バリエーション / バージョン</label><input type="text" id="p-ver" class="sm" placeholder="v1.2 / 通常版"></div>
+      </div>
+
+      <div class="fg">
+        <label>購入タイプ</label>
+        <div class="chips" id="pg-type">
+          <span class="chip on" onclick="pick('pg-type',this)">通常購入</span>
+          <span class="chip" onclick="pick('pg-type',this)">応援版</span>
+          <span class="chip" onclick="pick('pg-type',this)">セール価格</span>
+          <span class="chip" onclick="pick('pg-type',this)">ギフト受取</span>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>カテゴリ</label>
+        <div class="cat-grid" id="p-cat-grid">
+          <button class="cat-btn on" onclick="pickCat('p-cat-grid',this,'アバター')"><span class="cat-ico">🧑</span><span class="cat-lbl">アバター</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'髪型')"><span class="cat-ico">💇</span><span class="cat-lbl">髪型</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'衣装')"><span class="cat-ico">👗</span><span class="cat-lbl">衣装</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'アクセサリー')"><span class="cat-ico">💍</span><span class="cat-lbl">アクセサリー</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'耳・しっぽ')"><span class="cat-ico">🐾</span><span class="cat-lbl">耳・しっぽ</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'靴・足')"><span class="cat-ico">👟</span><span class="cat-lbl">靴・足</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'ボディ改変')"><span class="cat-ico">✨</span><span class="cat-lbl">ボディ改変</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'ギミック')"><span class="cat-ico">⚙️</span><span class="cat-lbl">ギミック</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'シェーダー')"><span class="cat-ico">🎨</span><span class="cat-lbl">シェーダー</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'テクスチャ')"><span class="cat-ico">🖼️</span><span class="cat-lbl">テクスチャ</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'ワールド素材')"><span class="cat-ico">🌍</span><span class="cat-lbl">ワールド素材</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'ツール')"><span class="cat-ico">🔧</span><span class="cat-lbl">ツール</span></button>
+          <button class="cat-btn" onclick="pickCat('p-cat-grid',this,'その他')"><span class="cat-ico">📦</span><span class="cat-lbl">その他</span></button>
+        </div>
+        <input type="hidden" id="p-cat" value="アバター">
+      </div>
+
+      <div class="fg">
+        <label>タグ（自由入力・Enterで追加）</label>
+        <div class="tag-input-wrap" id="p-tags-wrap" onclick="document.getElementById('p-tag-input').focus()">
+          <input type="text" id="p-tag-input" class="tag-input" placeholder="例：改変用、Vket、白猫…" onkeydown="tagKey(event,'p-tags-wrap','p-tag-input','p-tags-data')">
+        </div>
+        <div class="tag-hint">Enterキーで追加　同じタグで後から検索できます</div>
+        <input type="hidden" id="p-tags-data" value="[]">
+      </div>
+
+      <div class="fg"><label>メモ</label><textarea id="p-memo" class="sm" placeholder="改変予定のアバター用、セール終了前に購入 など"></textarea></div>
+    </div>
+
+    <div class="brow">
+      <button class="btn btn-tl" onclick="addP()">💎 記録する</button>
+      <button class="btn btn-gh" onclick="clrP()">クリア</button>
+    </div>
+  </div>
+
+  <!-- フィルター -->
+  <div class="frow" id="frow-p">
+    <button class="fc on" onclick="fp('all',this)">すべて</button>
+    <button class="fc" onclick="fp('アバター',this)">🧑 アバター</button>
+    <button class="fc" onclick="fp('髪型',this)">💇 髪型</button>
+    <button class="fc" onclick="fp('衣装',this)">👗 衣装</button>
+    <button class="fc" onclick="fp('アクセサリー',this)">💍 アクセ</button>
+    <button class="fc" onclick="fp('耳・しっぽ',this)">🐾 耳・しっぽ</button>
+    <button class="fc" onclick="fp('ギミック',this)">⚙️ ギミック</button>
+    <button class="fc" onclick="fp('ツール',this)">🔧 ツール</button>
+  </div>
+
+  <div class="ilist" id="list-p"></div>
+</div>
+
+<!-- ══ ほしい物 ══ -->
+<div id="panel-wishlist" class="panel">
+  <div class="card">
+    <div class="ctitle">Wishlist — ほしい物を登録</div>
+
+    <div class="url-bar">
+      <span class="url-bar-icon">🔗</span>
+      <input type="url" id="w-url" placeholder="BOOTHのURLをここに貼り付け（任意）" oninput="onUrlInput('w-url','w-url-id')">
+      <span class="url-parsed" id="w-url-id" style="display:none"></span>
+    </div>
+
+    <div class="main-row">
+      <div>
+        <div class="field-label">商品名 ＊</div>
+        <input type="text" id="w-name" placeholder="例：猫耳ヘッドセット">
+      </div>
+      <div>
+        <div class="field-label">価格メモ</div>
+        <div class="price-wrap">
+          <span class="price-yen">¥</span>
+          <input type="number" id="w-price" placeholder="2000" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-toggle" onclick="toggleDetail('w-detail','w-arrow')">
+      <span class="toggle-arrow" id="w-arrow">▶</span>
+      詳細を入力する（任意）
+    </div>
+    <div class="detail-panel" id="w-detail">
+      <div class="fg">
+        <label>優先度</label>
+        <div class="chips" id="wg-pri">
+          <span class="chip" onclick="pick('wg-pri',this)">🔴 絶対欲しい</span>
+          <span class="chip on" onclick="pick('wg-pri',this)">🟡 欲しい</span>
+          <span class="chip" onclick="pick('wg-pri',this)">🟢 気になる</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label>カテゴリ</label>
+        <div class="cat-grid" id="w-cat-grid">
+          <button class="cat-btn on" onclick="pickCat('w-cat-grid',this,'アバター')"><span class="cat-ico">🧑</span><span class="cat-lbl">アバター</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'髪型')"><span class="cat-ico">💇</span><span class="cat-lbl">髪型</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'衣装')"><span class="cat-ico">👗</span><span class="cat-lbl">衣装</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'アクセサリー')"><span class="cat-ico">💍</span><span class="cat-lbl">アクセサリー</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'耳・しっぽ')"><span class="cat-ico">🐾</span><span class="cat-lbl">耳・しっぽ</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'靴・足')"><span class="cat-ico">👟</span><span class="cat-lbl">靴・足</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'ギミック')"><span class="cat-ico">⚙️</span><span class="cat-lbl">ギミック</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'シェーダー')"><span class="cat-ico">🎨</span><span class="cat-lbl">シェーダー</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'ワールド素材')"><span class="cat-ico">🌍</span><span class="cat-lbl">ワールド素材</span></button>
+          <button class="cat-btn" onclick="pickCat('w-cat-grid',this,'その他')"><span class="cat-ico">📦</span><span class="cat-lbl">その他</span></button>
+        </div>
+        <input type="hidden" id="w-cat" value="アバター">
+      </div>
+      <div class="fg">
+        <label>タグ（自由入力・Enterで追加）</label>
+        <div class="tag-input-wrap" id="w-tags-wrap" onclick="document.getElementById('w-tag-input').focus()">
+          <input type="text" id="w-tag-input" class="tag-input" placeholder="例：次のVket用…" onkeydown="tagKey(event,'w-tags-wrap','w-tag-input','w-tags-data')">
+        </div>
+        <input type="hidden" id="w-tags-data" value="[]">
+      </div>
+      <div class="fg"><label>メモ</label><textarea id="w-memo" class="sm" placeholder="セールになったら買う など"></textarea></div>
+    </div>
+
+    <div class="brow">
+      <button class="btn btn-pk" onclick="addW()">💗 追加する</button>
+      <button class="btn btn-gh" onclick="clrW()">クリア</button>
+    </div>
+  </div>
+  <div class="ilist" id="list-w"></div>
+</div>
+
+<!-- ══ 無料アイテム ══ -->
+<div id="panel-free" class="panel">
+  <div class="card">
+    <div class="ctitle">Free Items — 無料アイテムを登録</div>
+
+    <div class="url-bar">
+      <span class="url-bar-icon">🔗</span>
+      <input type="url" id="f-url" placeholder="BOOTHのURLをここに貼り付け（任意）" oninput="onUrlInput('f-url','f-url-id')">
+      <span class="url-parsed" id="f-url-id" style="display:none"></span>
+    </div>
+
+    <div class="main-row">
+      <div style="grid-column:1/-1">
+        <div class="field-label">商品名 ＊</div>
+        <input type="text" id="f-name" placeholder="例：無料配布アバター Kana">
+      </div>
+    </div>
+
+    <div class="detail-toggle" onclick="toggleDetail('f-detail','f-arrow')">
+      <span class="toggle-arrow" id="f-arrow">▶</span>
+      詳細を入力する（任意）
+    </div>
+    <div class="detail-panel" id="f-detail">
+      <div class="fg">
+        <label>入手元</label>
+        <div class="chips" id="fg-src">
+          <span class="chip on" onclick="pick('fg-src',this)">BOOTH無料</span>
+          <span class="chip" onclick="pick('fg-src',this)">いいね欄から</span>
+          <span class="chip" onclick="pick('fg-src',this)">ほしい物リストから</span>
+          <span class="chip" onclick="pick('fg-src',this)">配布イベント</span>
+          <span class="chip" onclick="pick('fg-src',this)">その他</span>
+        </div>
+      </div>
+      <div class="fg">
+        <label>カテゴリ</label>
+        <div class="cat-grid" id="f-cat-grid">
+          <button class="cat-btn on" onclick="pickCat('f-cat-grid',this,'アバター')"><span class="cat-ico">🧑</span><span class="cat-lbl">アバター</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'髪型')"><span class="cat-ico">💇</span><span class="cat-lbl">髪型</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'衣装')"><span class="cat-ico">👗</span><span class="cat-lbl">衣装</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'アクセサリー')"><span class="cat-ico">💍</span><span class="cat-lbl">アクセサリー</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'耳・しっぽ')"><span class="cat-ico">🐾</span><span class="cat-lbl">耳・しっぽ</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'ギミック')"><span class="cat-ico">⚙️</span><span class="cat-lbl">ギミック</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'ワールド素材')"><span class="cat-ico">🌍</span><span class="cat-lbl">ワールド素材</span></button>
+          <button class="cat-btn" onclick="pickCat('f-cat-grid',this,'その他')"><span class="cat-ico">📦</span><span class="cat-lbl">その他</span></button>
+        </div>
+        <input type="hidden" id="f-cat" value="アバター">
+      </div>
+      <div class="fg">
+        <label>タグ（自由入力・Enterで追加）</label>
+        <div class="tag-input-wrap" id="f-tags-wrap" onclick="document.getElementById('f-tag-input').focus()">
+          <input type="text" id="f-tag-input" class="tag-input" placeholder="例：白猫用、改変済み…" onkeydown="tagKey(event,'f-tags-wrap','f-tag-input','f-tags-data')">
+        </div>
+        <input type="hidden" id="f-tags-data" value="[]">
+      </div>
+      <div class="fg"><label>メモ</label><textarea id="f-memo" class="sm" placeholder="改変メモなど"></textarea></div>
+    </div>
+
+    <div class="brow">
+      <button class="btn btn-bl" onclick="addF()">🔹 登録する</button>
+      <button class="btn btn-gh" onclick="clrF()">クリア</button>
+    </div>
+  </div>
+
+  <div class="frow">
+    <button class="fc on" onclick="ff('all',this)">すべて</button>
+    <button class="fc" onclick="ff('未DL',this)">未DL</button>
+    <button class="fc" onclick="ff('DL済',this)">DL済み</button>
+  </div>
+  <div class="ilist" id="list-f"></div>
+</div>
+
+<!-- ══ 収支サマリー ══ -->
+<div id="panel-summary" class="panel">
+  <div class="sgrid">
+    <div class="scell sc-ex"><div class="slabel">今月の支出</div><div class="sval sv-tl" id="s-me">¥0</div></div>
+    <div class="scell sc-in"><div class="slabel">今月の収入</div><div class="sval sv-gn" id="s-mi">¥0</div></div>
+    <div class="scell sc-ba"><div class="slabel">今月の収支</div><div class="sval sv-cy" id="s-mb">¥0</div></div>
+    <div class="scell sc-ex"><div class="slabel">累計支出</div><div class="sval sv-tl" id="s-te">¥0</div></div>
+    <div class="scell sc-in"><div class="slabel">累計収入</div><div class="sval sv-gn" id="s-ti">¥0</div></div>
+    <div class="scell sc-nt"><div class="slabel">無料アイテム</div><div class="sval sv-bl" id="s-fc">0点</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Income — ショップ収入を記録</div>
+    <div class="frow2">
+      <div class="fg"><label>収入金額（円）</label>
+        <div class="price-wrap"><span class="price-yen">¥</span><input type="number" id="i-price" placeholder="5000" min="0"></div>
+      </div>
+      <div class="fg"><label>日付</label><input type="date" id="i-date" class="sm"></div>
+    </div>
+    <div class="fg mt8"><label>内容</label><input type="text" id="i-memo" class="sm" placeholder="例：○○アバター 販売収入"></div>
+    <div class="brow"><button class="btn btn-gn" onclick="addI()">💚 収入を記録</button></div>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Monthly — 月別支出グラフ</div>
+    <div class="barchart" id="barchart"><div class="empty"><div class="empty-tx">データがありません</div></div></div>
+  </div>
+
+  <div class="expbar">
+    <div class="exptxt">📥 データをCSVで書き出せます<br><small>定期的なバックアップをおすすめします</small></div>
+    <button class="btn btn-gh" onclick="expCSV()" style="font-size:12px;padding:8px 16px;">CSVで書き出す</button>
+  </div>
+
+  <div class="slbl">INCOME HISTORY</div>
+  <div class="ilist" id="list-i"></div>
+</div>
+
+</div><!-- /app -->
+
+<div class="twrap" id="twrap"></div>
+
+<!-- 削除確認 -->
+<div class="overlay" id="del-m">
+  <div class="modal">
+    <div class="mtitle">// 削除の確認</div>
+    <p style="font-size:13px;color:var(--txm);margin-bottom:18px;line-height:1.7;">このアイテムを削除しますか？<br>この操作は元に戻せません。</p>
+    <div class="brow">
+      <button class="btn" style="background:var(--er);color:#fff;font-size:13px" onclick="doDel()">削除する</button>
+      <button class="btn btn-gh" onclick="closeM('del-m')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- 昇格モーダル -->
+<div class="overlay" id="promo-m">
+  <div class="modal">
+    <div class="mtitle">// 購入済みに移動</div>
+    <div class="fg">
+      <label>実際の購入金額（円）</label>
+      <div class="price-wrap"><span class="price-yen">¥</span><input type="number" id="pp" placeholder="3000" min="0"></div>
+    </div>
+    <div class="fg mt8"><label>購入日</label><input type="date" id="pd" class="sm"></div>
+    <div class="fg mt8">
+      <label>購入タイプ</label>
+      <div class="chips" id="pt-g">
+        <span class="chip on" onclick="pick('pt-g',this)">通常購入</span>
+        <span class="chip" onclick="pick('pt-g',this)">応援版</span>
+        <span class="chip" onclick="pick('pt-g',this)">セール価格</span>
+      </div>
+    </div>
+    <div class="brow">
+      <button class="btn btn-tl" onclick="doProm()">💎 購入済みに移動</button>
+      <button class="btn btn-gh" onclick="closeM('promo-m')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ データ ══ */
+const KEY='vrc_kb_v3';
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return{purchased:[],wishlist:[],free:[],income:[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(D))}
+let D=load(),delT=null,proT=null,fP='all',fF='all';
+
+/* ══ URL パース ══
+   対応形式：
+   https://booth.pm/ja/items/1234567
+   https://booth.pm/items/1234567
+   https://アカウント名.booth.pm/items/1234567
+   booth.pm/ja/items/1234567 （schemaなし）
+   VRChat / SNS の短縮共有リンクも items/数字 があれば抽出
+*/
+function parseBoothId(url){
+  const m = url.match(/items\/(\d+)/);
+  return m ? m[1] : null;
+}
+function onUrlInput(inputId, badgeId){
+  const val = document.getElementById(inputId).value.trim();
+  const badge = document.getElementById(badgeId);
+  const id = parseBoothId(val);
+  if(id){ badge.textContent='ID:'+id; badge.style.display=''; }
+  else  { badge.style.display='none'; }
+}
+
+/* ══ UI ヘルパー ══ */
+function sw(n){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  var tab=document.querySelector('[data-tab="'+n+'"]');
+  if(tab)tab.classList.add('on');
+  var panel=document.getElementById('panel-'+n);
+  if(panel)panel.classList.add('on');
+  if(n==='summary')rSum();
+}
+function toggleDetail(panelId, arrowId){
+  const p=document.getElementById(panelId), a=document.getElementById(arrowId);
+  const open=p.classList.toggle('open');
+  a.classList.toggle('open',open);
+}
+function pick(g,el){document.querySelectorAll(`#${g} .chip`).forEach(c=>c.classList.remove('on'));el.classList.add('on')}
+function cv(g){const c=document.querySelector(`#${g} .chip.on`);return c?c.textContent.trim():''}
+function pickCat(gridId,el,val){
+  document.querySelectorAll(`#${gridId} .cat-btn`).forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  // 対応するhiddenに保存
+  const hidden=document.getElementById(gridId.replace('-cat-grid','-cat'));
+  if(hidden)hidden.value=val;
+}
+
+/* ══ タグ入力 ══ */
+function tagKey(e,wrapId,inputId,dataId){
+  if(e.key!=='Enter'&&e.key!==',')return;
+  e.preventDefault();
+  const inp=document.getElementById(inputId);
+  const tag=inp.value.trim().replace(/,/g,'');
+  if(!tag)return;
+  const hidden=document.getElementById(dataId);
+  const tags=JSON.parse(hidden.value||'[]');
+  if(tags.includes(tag)){inp.value='';return;}
+  tags.push(tag);
+  hidden.value=JSON.stringify(tags);
+  addTagPill(wrapId,inputId,dataId,tag);
+  inp.value='';
+}
+function addTagPill(wrapId,inputId,dataId,tag){
+  const wrap=document.getElementById(wrapId);
+  const inp=document.getElementById(inputId);
+  const pill=document.createElement('span');
+  pill.className='tag-pill';
+  pill.innerHTML=`${x(tag)}<button type="button" onclick="removeTag('${wrapId}','${dataId}','${x(tag)}',this)">×</button>`;
+  wrap.insertBefore(pill,inp);
+}
+function removeTag(wrapId,dataId,tag,btn){
+  const hidden=document.getElementById(dataId);
+  const tags=JSON.parse(hidden.value||'[]').filter(t=>t!==tag);
+  hidden.value=JSON.stringify(tags);
+  btn.parentElement.remove();
+}
+function clearTags(wrapId,inputId,dataId){
+  const wrap=document.getElementById(wrapId);
+  const inp=document.getElementById(inputId);
+  wrap.querySelectorAll('.tag-pill').forEach(p=>p.remove());
+  document.getElementById(dataId).value='[]';
+  inp.value='';
+}
+
+/* ══ CRUD ══ */
+function addP(){
+  const name=document.getElementById('p-name').value.trim();
+  const price=parseInt(document.getElementById('p-price').value)||0;
+  if(!name){toast('⚠️ 商品名を入力してください');return}
+  const tags=JSON.parse(document.getElementById('p-tags-data').value||'[]');
+  D.purchased.unshift({
+    id:Date.now(),name,
+    url:g('p-url'),
+    boothId:parseBoothId(g('p-url')),
+    price,
+    date:g('p-date')||td(),
+    version:g('p-ver'),
+    type:cv('pg-type'),
+    cat:document.getElementById('p-cat').value||'アバター',
+    tags,
+    memo:g('p-memo'),
+  });
+  save();rP();uHd();clrP();toast('💎 購入記録を追加しました！');
+}
+function clrP(){
+  ['p-url','p-name','p-price','p-ver','p-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-date').value=td();
+  document.getElementById('p-url-id').style.display='none';
+  document.querySelectorAll('#pg-type .chip').forEach((c,i)=>c.classList.toggle('on',i===0));
+  document.querySelectorAll('#p-cat-grid .cat-btn').forEach((b,i)=>{b.classList.toggle('on',i===0)});
+  document.getElementById('p-cat').value='アバター';
+  clearTags('p-tags-wrap','p-tag-input','p-tags-data');
+}
+
+function addW(){
+  const name=document.getElementById('w-name').value.trim();
+  if(!name){toast('⚠️ 商品名を入力してください');return}
+  const tags=JSON.parse(document.getElementById('w-tags-data').value||'[]');
+  const priRaw=cv('wg-pri');
+  const pri=priRaw.includes('絶対')?'高':priRaw.includes('欲しい')?'中':'低';
+  D.wishlist.unshift({
+    id:Date.now(),name,
+    url:g('w-url'),
+    boothId:parseBoothId(g('w-url')),
+    price:parseInt(document.getElementById('w-price').value)||null,
+    pri,cat:document.getElementById('w-cat').value||'アバター',
+    tags,memo:g('w-memo'),at:td(),
+  });
+  save();rW();clrW();toast('💗 ほしい物リストに追加しました！');
+}
+function clrW(){
+  ['w-url','w-name','w-price','w-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('w-url-id').style.display='none';
+  document.querySelectorAll('#wg-pri .chip').forEach((c,i)=>c.classList.toggle('on',i===1));
+  document.querySelectorAll('#w-cat-grid .cat-btn').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.getElementById('w-cat').value='アバター';
+  clearTags('w-tags-wrap','w-tag-input','w-tags-data');
+}
+
+function addF(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){toast('⚠️ 商品名を入力してください');return}
+  const tags=JSON.parse(document.getElementById('f-tags-data').value||'[]');
+  D.free.unshift({
+    id:Date.now(),name,
+    url:g('f-url'),
+    boothId:parseBoothId(g('f-url')),
+    src:cv('fg-src'),
+    cat:document.getElementById('f-cat').value||'アバター',
+    tags,memo:g('f-memo'),dl:false,at:td(),
+  });
+  save();rF();clrF();toast('🔹 無料アイテムを登録しました！');
+}
+function clrF(){
+  ['f-url','f-name','f-memo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-url-id').style.display='none';
+  document.querySelectorAll('#fg-src .chip').forEach((c,i)=>c.classList.toggle('on',i===0));
+  document.querySelectorAll('#f-cat-grid .cat-btn').forEach((b,i)=>b.classList.toggle('on',i===0));
+  document.getElementById('f-cat').value='アバター';
+  clearTags('f-tags-wrap','f-tag-input','f-tags-data');
+}
+
+function addI(){
+  const price=parseInt(document.getElementById('i-price').value)||0;
+  if(price<=0){toast('⚠️ 収入金額を入力してください');return}
+  D.income.unshift({id:Date.now(),price,memo:g('i-memo')||'販売収入',date:g('i-date')||td()});
+  save();rSum();
+  document.getElementById('i-price').value='';document.getElementById('i-memo').value='';
+  toast('💚 収入を記録しました！');
+}
+
+/* ══ レンダリング ══ */
+function tagHtml(tags){
+  if(!tags||!tags.length)return'';
+  return tags.map(t=>`<span class="badge b-tag">#${x(t)}</span>`).join('');
+}
+
+function rP(){
+  const el=document.getElementById('list-p');
+  document.getElementById('tc-p').textContent=D.purchased.length;
+  let items=fP==='all'?D.purchased:D.purchased.filter(i=>i.cat===fP);
+  if(!items.length){el.innerHTML=emp('💎','まだ購入記録がありません');return}
+  el.innerHTML=items.map(i=>`
+    <div class="icard">
+      <div class="idot d-tl"></div>
+      <div class="ibody">
+        <div class="iname">${x(i.name)}</div>
+        <div class="imeta">
+          <span class="badge b-gy">${catIco(i.cat)}${x(i.cat)}</span>
+          ${i.type?`<span class="badge ${tb(i.type)}">${x(i.type)}</span>`:''}
+          ${i.version?`<span class="badge b-bl">${x(i.version)}</span>`:''}
+          <span class="idate">${x(i.date)}</span>
+          ${tagHtml(i.tags)}
+        </div>
+        ${i.url?`<div class="iurl"><a href="${x(i.url)}" target="_blank">${boothLinkLabel(i)}</a></div>`:''}
+        ${i.memo?`<div class="imemo">${x(i.memo)}</div>`:''}
+      </div>
+      <div class="iright">
+        <div class="iprice">¥${i.price.toLocaleString()}</div>
+        <button class="btn-ic" onclick="oDel('purchased',${i.id})">🗑</button>
+      </div>
+    </div>`).join('');
+  uHd();
+}
+
+function rW(){
+  const el=document.getElementById('list-w');
+  document.getElementById('tc-w').textContent=D.wishlist.length;
+  if(!D.wishlist.length){el.innerHTML=emp('💗','ほしい物リストは空です');return}
+  el.innerHTML=D.wishlist.map(i=>`
+    <div class="icard">
+      <div class="idot d-pk"></div>
+      <div class="ibody">
+        <div class="iname">${x(i.name)}</div>
+        <div class="imeta">
+          <span class="badge ${pb(i.pri)}">${pl(i.pri)}</span>
+          <span class="badge b-gy">${catIco(i.cat)}${x(i.cat)}</span>
+          ${i.price?`<span class="badge b-tl">¥${i.price.toLocaleString()}</span>`:''}
+          <span class="idate">${x(i.at)}</span>
+          ${tagHtml(i.tags)}
+        </div>
+        ${i.url?`<div class="iurl"><a href="${x(i.url)}" target="_blank">${boothLinkLabel(i)}</a></div>`:''}
+        ${i.memo?`<div class="imemo">${x(i.memo)}</div>`:''}
+        <div class="mt8"><button class="btn-promo" onclick="oPro(${i.id})">💎 購入済みに移動</button></div>
+      </div>
+      <div class="iright">
+        <button class="btn-ic" onclick="oDel('wishlist',${i.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function rF(){
+  const el=document.getElementById('list-f');
+  document.getElementById('tc-f').textContent=D.free.length;
+  let items=D.free;
+  if(fF==='未DL')items=items.filter(i=>!i.dl);
+  if(fF==='DL済')items=items.filter(i=>i.dl);
+  if(!items.length){el.innerHTML=emp('🔹','該当するアイテムがありません');return}
+  el.innerHTML=items.map(i=>`
+    <div class="icard">
+      <div class="dlbox ${i.dl?'done':''}" onclick="tDL(${i.id})">${i.dl?'✓':''}</div>
+      <div class="ibody">
+        <div class="iname" style="${i.dl?'opacity:.45':''}">${x(i.name)}</div>
+        <div class="imeta">
+          <span class="badge ${i.dl?'b-gn':'b-cy'}">${i.dl?'DL済み ✓':'未DL'}</span>
+          <span class="badge b-gy">${catIco(i.cat)}${x(i.cat)}</span>
+          <span class="badge b-bl">${x(i.src)}</span>
+          <span class="idate">${x(i.at)}</span>
+          ${tagHtml(i.tags)}
+        </div>
+        ${i.url?`<div class="iurl"><a href="${x(i.url)}" target="_blank">${boothLinkLabel(i)}</a></div>`:''}
+        ${i.memo?`<div class="imemo">${x(i.memo)}</div>`:''}
+      </div>
+      <div class="iright">
+        <div class="iprice p-free" style="font-size:12px">FREE</div>
+        <button class="btn-ic" onclick="oDel('free',${i.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function rI(){
+  const el=document.getElementById('list-i');
+  if(!D.income.length){el.innerHTML=emp('💚','収入記録はまだありません');return}
+  el.innerHTML=D.income.map(i=>`
+    <div class="icard">
+      <div class="idot d-gn"></div>
+      <div class="ibody">
+        <div class="iname">${x(i.memo)}</div>
+        <div class="imeta"><span class="idate">${x(i.date)}</span></div>
+      </div>
+      <div class="iright">
+        <div class="iprice p-inc">+¥${i.price.toLocaleString()}</div>
+        <button class="btn-ic" onclick="oDel('income',${i.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function rSum(){
+  const m=cm();
+  const me=D.purchased.filter(i=>i.date?.startsWith(m)).reduce((s,i)=>s+i.price,0);
+  const mi=D.income.filter(i=>i.date?.startsWith(m)).reduce((s,i)=>s+i.price,0);
+  const mb=mi-me;
+  const te=D.purchased.reduce((s,i)=>s+i.price,0);
+  const ti=D.income.reduce((s,i)=>s+i.price,0);
+  document.getElementById('s-me').textContent=`¥${me.toLocaleString()}`;
+  document.getElementById('s-mi').textContent=`¥${mi.toLocaleString()}`;
+  const elb=document.getElementById('s-mb');
+  elb.textContent=`${mb>=0?'+':''}¥${mb.toLocaleString()}`;
+  elb.className=`sval ${mb>=0?'sv-gn':'sv-rd'}`;
+  document.getElementById('s-te').textContent=`¥${te.toLocaleString()}`;
+  document.getElementById('s-ti').textContent=`¥${ti.toLocaleString()}`;
+  document.getElementById('s-fc').textContent=`${D.free.length}点`;
+  rBar();rI();
+}
+
+function rBar(){
+  const c=document.getElementById('barchart');
+  const map={};
+  D.purchased.forEach(i=>{if(i.date){const m=i.date.slice(0,7);map[m]=(map[m]||0)+i.price}});
+  const months=Object.keys(map).sort().slice(-6);
+  if(!months.length){c.innerHTML='<div class="empty"><div class="empty-tx">データがありません</div></div>';return}
+  const max=Math.max(...months.map(m=>map[m]));
+  c.innerHTML=months.map(m=>{
+    const v=map[m],pct=max>0?Math.round(v/max*100):0,lbl=m.slice(2).replace('-','年')+'月';
+    return`<div class="brow2">
+      <div class="blabel">${lbl}</div>
+      <div class="btrack"><div class="bfill" style="width:${Math.max(pct,2)}%">${pct>18?`<span class="bval">¥${v.toLocaleString()}</span>`:''}</div></div>
+      ${pct<=18?`<div style="font-size:10px;font-family:var(--f-mono)"Consolas","Courier New",monospace;color:var(--txd);white-space:nowrap">¥${v.toLocaleString()}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function uHd(){
+  const m=cm();
+  const mt=D.purchased.filter(i=>i.date?.startsWith(m)).reduce((s,i)=>s+i.price,0);
+  const tt=D.purchased.reduce((s,i)=>s+i.price,0);
+  document.getElementById('hd-m').textContent=`¥${mt.toLocaleString()}`;
+  document.getElementById('hd-t').textContent=`¥${tt.toLocaleString()}`;
+}
+
+/* ══ フィルター ══ */
+function fp(v,el){fP=v;document.querySelectorAll('#panel-purchased .frow .fc').forEach(c=>c.classList.remove('on'));el.classList.add('on');rP()}
+function ff(v,el){fF=v;document.querySelectorAll('#panel-free .frow .fc').forEach(c=>c.classList.remove('on'));el.classList.add('on');rF()}
+
+/* ══ DL ══ */
+function tDL(id){const i=D.free.find(f=>f.id===id);if(!i)return;i.dl=!i.dl;save();rF();toast(i.dl?'✅ DL済みにしました！':'📦 未DLに戻しました')}
+
+/* ══ 削除 ══ */
+function oDel(type,id){delT={type,id};document.getElementById('del-m').classList.add('open')}
+function doDel(){
+  if(!delT)return;
+  const{type,id}=delT;
+  D[type]=D[type].filter(i=>i.id!==id);
+  save();closeM('del-m');delT=null;
+  if(type==='purchased'){rP();uHd()}
+  else if(type==='wishlist')rW();
+  else if(type==='free')rF();
+  else if(type==='income'){rI();rSum();}
+  toast('🗑 削除しました');
+}
+
+/* ══ 昇格 ══ */
+function oPro(id){
+  proT=id;
+  const i=D.wishlist.find(w=>w.id===id);
+  document.getElementById('pd').value=td();
+  document.getElementById('pp').value=i?.price||'';
+  document.querySelectorAll('#pt-g .chip').forEach((c,idx)=>c.classList.toggle('on',idx===0));
+  document.getElementById('promo-m').classList.add('open');
+}
+function doProm(){
+  if(!proT)return;
+  const i=D.wishlist.find(w=>w.id===proT);if(!i)return;
+  D.purchased.unshift({
+    id:Date.now(),name:i.name,url:i.url,boothId:i.boothId,
+    price:parseInt(document.getElementById('pp').value)||0,
+    date:document.getElementById('pd').value||td(),
+    version:'',type:cv('pt-g'),cat:i.cat||'その他',tags:i.tags||[],memo:i.memo,
+  });
+  D.wishlist=D.wishlist.filter(w=>w.id!==proT);
+  save();closeM('promo-m');proT=null;
+  rP();rW();uHd();toast('💎 購入済みに移動しました！');
+}
+
+/* ══ CSV ══ */
+function expCSV(){
+  const rows=[['種別','商品名','金額','日付','タイプ','カテゴリ','バージョン','タグ','URL','BOOTHアイテムID','メモ']];
+  D.purchased.forEach(i=>rows.push(['購入済み',i.name,i.price,i.date,i.type,i.cat,i.version,(i.tags||[]).join('/'),i.url,i.boothId||'',i.memo]));
+  D.wishlist.forEach(i=>rows.push(['ほしい物',i.name,i.price||'',i.at,i.pri,i.cat,'',(i.tags||[]).join('/'),i.url,i.boothId||'',i.memo]));
+  D.free.forEach(i=>rows.push(['無料',i.name,0,i.at,i.src,i.cat,i.dl?'DL済':'未DL',(i.tags||[]).join('/'),i.url,i.boothId||'',i.memo]));
+  D.income.forEach(i=>rows.push(['収入',i.memo,i.price,i.date,'','','','','','','']));
+  const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`vrc-kakeibo-${cm()}.csv`;a.click();
+  toast('📥 CSVを書き出しました！');
+}
+
+/* ══ Modal ══ */
+function closeM(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.overlay').forEach(el=>{el.addEventListener('click',e=>{if(e.target===el)closeM(el.id)})});
+
+/* ══ Toast ══ */
+function toast(msg){
+  const c=document.getElementById('twrap');
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  c.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+
+/* ══ ユーティリティ ══ */
+function td(){return new Date().toISOString().slice(0,10)}
+function cm(){return new Date().toISOString().slice(0,7)}
+function g(id){return document.getElementById(id).value.trim()}
+function x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function emp(ic,msg){return`<div class="empty"><div class="empty-ic">${ic}</div><div class="empty-tx">${msg}</div></div>`}
+function tb(t){return t==='応援'?'b-pk':t==='セール'?'b-yn':t==='ギフト'?'b-gn':'b-gy'}
+function pb(p){return p==='高'?'b-pk':p==='中'?'b-yn':'b-gn'}
+function pl(p){return p==='高'?'🔴 絶対欲しい':p==='中'?'🟡 欲しい':'🟢 気になる'}
+function catIco(cat){
+  const m={'アバター':'🧑','髪型':'💇','衣装':'👗','アクセサリー':'💍','耳・しっぽ':'🐾','靴・足':'👟','ボディ改変':'✨','ギミック':'⚙️','シェーダー':'🎨','テクスチャ':'🖼️','ワールド素材':'🌍','ツール':'🔧','その他':'📦'};
+  return(m[cat]||'📦')+' ';
+}
+function boothLinkLabel(i){
+  return i.boothId?`booth.pm/items/${i.boothId}`:x(i.url);
+}
+
+/* ══ 初期化 ══ */
+document.getElementById('p-date').value=td();
+document.getElementById('i-date').value=td();
+rP();rW();rF();uHd();
+</script>
+</body>
+</html>
